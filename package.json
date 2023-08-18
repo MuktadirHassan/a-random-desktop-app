@@ -1,6 +1,7 @@
 {
   "name": "electron-esbuild-project",
   "version": "1.0.0",
+  "license": "MIT",
   "scripts": {
     "dev": "electron-esbuild dev",
     "build": "electron-esbuild build",

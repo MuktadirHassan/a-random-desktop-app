@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require("electron");
+import { contextBridge, ipcRenderer } from "electron";
 
 const api = {
   node: () => process.versions.node,
@@ -12,4 +12,8 @@ const api = {
 
 contextBridge.exposeInMainWorld("api", api);
 
-export type Api = typeof api;
+declare global {
+  interface Window {
+    api: typeof api;
+  }
+}

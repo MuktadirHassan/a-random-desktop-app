@@ -1,39 +1,32 @@
 import * as path from "path";
 import { format } from "url";
-import { app, BrowserWindow, dialog, ipcMain, Menu } from "electron";
+import { app, BrowserWindow } from "electron";
 import { is } from "electron-util";
+import windowStateKeeper from "electron-window-state";
 
 let win: BrowserWindow | null = null;
 
 async function createWindow() {
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: 800,
+    defaultHeight: 820,
+  });
+
   win = new BrowserWindow({
-    width: 800,
-    height: 820,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
+
     minHeight: 600,
     minWidth: 650,
-    // autoHideMenuBar: true,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
-  const menu = Menu.buildFromTemplate([
-    {
-      label: app.name,
-      submenu: [
-        {
-          click: () => win.webContents.send("update-counter", 1),
-          label: "Increment",
-        },
-        {
-          click: () => win.webContents.send("update-counter", -1),
-          label: "Decrement",
-        },
-      ],
-    },
-  ]);
-
-  Menu.setApplicationMenu(menu);
+  mainWindowState.manage(win);
 
   const isDev = is.development;
 
@@ -81,27 +74,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-ipcMain.on("message", (event, arg) => {
-  console.log(arg); // prints "ping"
-});
-
-ipcMain.on("set-title", (event, title) => {
-  win.setTitle(title);
-});
-
-ipcMain.handle("dialog:openFile", handleFileOpen);
-
-async function handleFileOpen() {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    properties: ["openFile"],
-    filters: [
-      { name: "Markdown", extensions: ["md", "markdown", "txt"] },
-      { name: "All Files", extensions: ["*"] },
-    ],
-  });
-
-  if (!canceled) {
-    return filePaths[0];
-  }
-}
